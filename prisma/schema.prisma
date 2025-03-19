@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  rentals   Rental[]
+  createdAt DateTime @default(now())
+}
+
+model Book {
+  id         String   @id @default(uuid())
+  title      String
+  author     String
+  isbn       String   @unique
+  coverImage String?  // File upload support
+  available  Boolean  @default(true)
+  rentals    Rental[]
+  createdAt  DateTime @default(now())
+}
+
+model Rental {
+  id        String   @id @default(uuid())
+  userId    String
+  bookId    String
+  rentedAt  DateTime @default(now())
+  issuedAt  DateTime @default(now())
+  dueDate   DateTime
+  returned  Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([userId]) // Ensures a user can rent only one book at a time
+  @@unique([bookId]) // Ensures a book is rented only once at a time
+}
